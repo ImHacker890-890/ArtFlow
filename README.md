@@ -31,4 +31,5 @@ pip install tensorflowjs
 tensorflowjs_converter --input_format keras diffusion_model.h5 tfjs_model
 ```
 6. Launch TensorFlow.js:
+
 Launch in browser file main.html
