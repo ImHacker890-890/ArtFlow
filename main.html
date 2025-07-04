@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Diffussion</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder@1.3.2"></script>
+</head>
+<body>
+    <textarea id="prompt" placeholder="Enter description..."></textarea>
+    <button id="generate">Generate</button>
+    <canvas id="output" width="128" height="128"></canvas>
+
+    <script>
+        async function generateImage() {
+            const prompt = document.getElementById("prompt").value;
+      
+            const [model, textEncoder] = await Promise.all([
+                tf.loadGraphModel("tfjs_model/model.json"),
+                use.load()
+            ]);
+            
+            
+            const textEmb = await textEncoder.embed([prompt]);
+            
+          
+            let x = tf.random.normal([1, 128, 128, 3]);
+            for (let t = 1000; t >= 0; t--) {
+                const tTensor = tf.tensor([[t / 1000]]);
+                const predNoise = model.predict([x, tTensor, textEmb]);
+                x = (x - predNoise * (1 - t/1000)) / Math.sqrt(t/1000);
+            }
+            
+          
+            const imgData = await tf.browser.toPixels(tf.squeeze(x));
+            const canvas = document.getElementById("output");
+            const ctx = canvas.getContext("2d");
+            ctx.putImageData(new ImageData(imgData, 128, 128), 0, 0);
+        }
+
+        document.getElementById("generate").addEventListener("click", generateImage);
+    </script>
+</body>
+</html>
